@@ -206,3 +206,6 @@ cmake-build-*/
 # IntelliJ
 out/
 .idea/
+
+# vscode
+.vscode/
