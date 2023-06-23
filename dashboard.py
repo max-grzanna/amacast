@@ -15,7 +15,6 @@ algo = rpt.Dynp(model=model).fit(series)
 result_range = algo.predict(n_bkps=1)
 
 fig = plt.figure() 
-# make plot smaller
 fig.fig_size = (4,10)
 plt.plot(series)
 plt.axvspan(xmin=result_range[0], xmax=result_range[1], color="red", alpha=0.5)
