@@ -1,32 +1,3 @@
-import datetime as dt
-from sklearn import linear_model
-import numpy as np
-from datetime import datetime
-
-# def get_slope(df, order=1):
-#     y = df.index.map(dt.datetime.toordinal)  # Generate an array representing the indices
-#     x = np.squeeze(df.values)
-#     idx = np.isfinite(x) & np.isfinite(y)
-
-#     p = Polynomial.fit(x[idx], y[idx], order)
-    
-#     coeffs = p.convert().coef
-#     # The slope is the coefficient corresponding to the power of x^1
-#     slope = coeffs[-2]
-#     return slope
-
-def create_regressor(df):
-    df['date_ordinal'] = df.index.map(dt.datetime.toordinal) 
-    reg = linear_model.LinearRegression()
-    X = df['date_ordinal'].values.reshape(-1, 1)
-    y = df['value'].values
-    reg.fit(X, y)
-    return reg 
-    
-
-def get_coef(reg):
-    return reg.coef_[0]
-
-def predict_capacity_overrun(reg, max_capacity):
-    pred = reg.predict(np.array([max_capacity]).reshape(-1, 1))
-    return datetime.date.fromordinal(int(pred[0]))
+version https://git-lfs.github.com/spec/v1
+oid sha256:b02ed4464c5b4bb760c5ca8083c20f1b9bb3b608b9ab9355ff21703ac9712c0a
+size 991

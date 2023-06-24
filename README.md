@@ -1,14 +1,3 @@
-# amacast
-
-## install
-
-use: `python3 -m venv .venv`
-
-On Linux machines use the following command to activate the environment:
-`source venv/bin/activate`
-
-Execute `pip3 install -r requirements.txt` to install the necessary dependencies.
-
-# run dashboard server
-
-use `streamlit run dashboard.py`
+version https://git-lfs.github.com/spec/v1
+oid sha256:3984e4a6e2be9e9254caeb7fc71269b043d049c18eb0d6427986741e0f06e0b3
+size 557
