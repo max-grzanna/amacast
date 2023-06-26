@@ -30,12 +30,12 @@ def main():
     parser = argparse.ArgumentParser(description="CSV to JSON Converter")
     parser.add_argument("file", type=str, help="Path to the CSV file")
     parser.add_argument("--endpoint", type=str, help="URL of the API endpoint")
-    parser.add_argument("--max-capacity", type=float, help="Maximum capacity of the system")
+    parser.add_argument("--max-capacity", required=False , type=float, help="Maximum capacity of the system")
+
     args = parser.parse_args()
 
     csv_file = args.file
     endpoint = args.endpoint
-    max_capacity = args.max_capacity
 
     # get name of the file without file extension
     file_name = csv_file.split("/")[-1].split(".")[0]
@@ -43,8 +43,11 @@ def main():
     try:
         time_series_data = csv_to_json(csv_file)
         json_data = {"file_name": file_name,
-                     "data": time_series_data,
-                     "max_capacity": max_capacity}
+                     "data": time_series_data}
+
+        if args.max_capacity:
+            json_data["max_capacity"] = args.max_capacity
+
         response = send_data_to_api(json_data, endpoint)
         print(response.text)
     except FileNotFoundError:

@@ -1,7 +1,8 @@
 import pandas as pd
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, make_response
 import helper
 from trend import get_coef, create_regressor, predict_capacity_overrun
+from changepoints import calc_changepoint_interval
 
 app = Flask(__name__)
 
@@ -33,18 +34,33 @@ def get_forecasted_capacity_overrun():
   reg = create_regressor(data)
   overrun_date = predict_capacity_overrun(reg, max_capacity=max_capacity)
 
-  data = {
+  res= {
     "name": timeseries_name,
     "type": "upper_limit",
     "overrun_date": overrun_date,
   }
   
-  return jsonify(data)
+  return res, 200
 
 @app.route('/changepoints', methods=["POST"])
 def get_changepoints():
-  pass
+  content = request.json
+  timeseries_name = content["file_name"]
+  data = pd.json_normalize(content["data"])
+  data = helper.prepare_df(data, window=6 * 30)
+  data = helper.smooth_time_series(data, window=24,
+                                   center=True,
+                                   min_periods=1)
 
-@app.route('/anomaly', methods=["POST"])
-def get_anomalies():
-  pass
+  changepoints = calc_changepoint_interval(data)
+
+  res = {
+    "name": timeseries_name,
+    "type": "changepoints",
+    "changepoints": changepoints
+  }
+
+  return res, 200
+
+if __name__ == '__main__':
+    app.run(debug=True)

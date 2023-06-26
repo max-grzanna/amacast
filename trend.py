@@ -29,5 +29,4 @@ def get_coef(reg):
 
 def predict_capacity_overrun(reg, max_capacity):
     pred = reg.predict(np.array([max_capacity]).reshape(-1, 1))
-    print(f"Predicted overrun date: {pred}")
     return datetime.date.fromordinal(int(pred[0]))
