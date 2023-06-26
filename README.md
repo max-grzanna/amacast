@@ -14,12 +14,20 @@ Execute `pip3 install -r requirements.txt` to install the necessary dependencies
 
 use `streamlit run dashboard.py`
 
-## Send data against the AP
+## Send data against the API
 Here is a basic example of sending data against the API:
 
+**Capacity prediction:**
 ```bash
 python3 connector.py \
   data/memory-required.csv \
   --endpoint http://127.0.0.1:5000/capacity \
   --max-capacity 20.0
+```
+
+**Changepoint detection:**
+```bash
+python connector.py \                                  
+  data/memory-required.csv \
+  --endpoint http://127.0.0.1:5000/changepoints
 ```
