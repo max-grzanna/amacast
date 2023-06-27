@@ -35,7 +35,7 @@ export const Setup = () => {
             <div className="flex items-center gap-2">
               <Icon icon={PresentationChartLineIcon} />
               Reporting
-            </div>{" "}
+            </div>
           </Tab>
         </TabsHeader>
       </Tabs>
