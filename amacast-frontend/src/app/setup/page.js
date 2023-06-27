@@ -265,7 +265,7 @@ export const Setup = () => {
       </a>
       <Grid numItems={1} numItemsSm={1} numItemsLg={3} className="gap-6 mt-6">
         <Col numColSpan={1}>
-          <Flex alignItems="center" justifyContent="center">
+          <Flex alignItems="center" justifyContent="center" className="mb-4">
             <Icon icon={DocumentReportIcon} />
             <Title>Source</Title>
           </Flex>
@@ -273,7 +273,7 @@ export const Setup = () => {
           <ConfigurationList items={connectorItems} className="mt-4" />
         </Col>
         <Col numColSpan={1}>
-          <Flex alignItems="center" justifyContent="center">
+          <Flex alignItems="center" justifyContent="center" className="mb-4">
             <Icon icon={SparklesIcon} />
             <Title>Analysis</Title>
           </Flex>
@@ -281,7 +281,7 @@ export const Setup = () => {
           <ConfigurationList items={analysisItems} className="mt-4" />
         </Col>
         <Col numColSpan={1}>
-          <Flex alignItems="center" justifyContent="center">
+          <Flex alignItems="center" justifyContent="center" className="mb-4">
             <Icon icon={PresentationChartLineIcon} />
             <Title>Reporting</Title>
           </Flex>
