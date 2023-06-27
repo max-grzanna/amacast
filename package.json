@@ -10,5 +10,8 @@
   },
   "scripts": {
     "prepare": "husky install"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }
