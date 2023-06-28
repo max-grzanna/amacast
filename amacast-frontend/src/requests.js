@@ -17,3 +17,8 @@ export const getConnectors = async () => {
   const response = await fetch(BACKEND_URL + "/connector");
   return await response.json();
 };
+
+export const getConfigs = async () => {
+  const response = await fetch(BACKEND_URL + "/custom/config");
+  return await response.json();
+};

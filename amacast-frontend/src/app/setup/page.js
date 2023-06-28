@@ -42,6 +42,7 @@ import {
 import { LabeledTextInput } from "./sourceConfig/page";
 import { compact, isEmpty, pick } from "lodash";
 import { getConnectors, postConnector } from "@/requests";
+import ConfigsTable from "./ConfigsTable";
 
 const optionsToArray = (options) => {
   if (Array.isArray(options)) {
@@ -333,6 +334,9 @@ export const Setup = () => {
           <ConfigurationList items={reportingItems} className="mt-4" />
         </Col>
       </Grid>
+      <Flex className="mt-10">
+        <ConfigsTable />
+      </Flex>
       <Dialog open={isDialogOpen} handler={handleOpen}>
         <Flex justifyContent="center" alignItems="center" className="mt-10">
           <Card className="max-w-xl auto" decoration="top">

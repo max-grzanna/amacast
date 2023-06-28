@@ -4,6 +4,7 @@ import { corsMiddleware } from "./middleware/corsMiddleware";
 import { runAllAnalysis } from "./service/analysis";
 import { runIngestAll } from "./service/ingest";
 import { createRestRouter } from "./router/restRouterfactory";
+import { customRouter } from "./router/custom";
 
 const main = async () => {
   // connect to db and run migrations
@@ -53,6 +54,7 @@ const main = async () => {
   app.use("/analysis", createRestRouter("analysis"));
   app.use("/warning", createRestRouter("warning"));
   app.use("/trend", createRestRouter("trend"));
+  app.use("/custom", customRouter);
 
   const port = process.env.PORT || 8080;
   // start express server
