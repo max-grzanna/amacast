@@ -21,7 +21,10 @@ export default () => {
       const configs = await getConfigs();
       setConfigs(configs);
     };
-    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+    return () => clearInterval(interval);
   }, [setConfigs]);
   return (
     <Card>
