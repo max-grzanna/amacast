@@ -33,8 +33,16 @@ const main = async () => {
     const result = await runIngestAll();
     res.send(result);
   });
+  app.post("/trigger/runIngestAll", async (req, res) => {
+    const result = await runIngestAll();
+    res.send(result);
+  });
 
   app.get("/trigger/runAnalysisAll", async (req, res) => {
+    const result = await runAllAnalysis();
+    res.send(result);
+  });
+  app.post("/trigger/runAnalysisAll", async (req, res) => {
     const result = await runAllAnalysis();
     res.send(result);
   });
