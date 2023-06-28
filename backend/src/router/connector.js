@@ -9,24 +9,14 @@ const getConnector = async (req, res, next) => {
 };
 
 const postConnector = async (req, res, next) => {
-  const connector = await db("connector")
-    .insert({
-      name: req.body.name,
-      type: req.body.type,
-      ref_url: req.body.ref_url,
-    })
-    .returning("*");
+  const connector = await db("connector").insert(req.body).returning("*");
   res.send(connector);
 };
 
 const patchConnector = async (req, res, next) => {
   const { id } = req.params;
   const connector = await db("connector")
-    .update({
-      name: req.body.name,
-      type: req.body.type,
-      ref_url: req.body.ref_url,
-    })
+    .update(req.body)
     .where({ id })
     .returning("*");
   res.send(connector);

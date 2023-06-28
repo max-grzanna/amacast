@@ -32,7 +32,7 @@ import {
   ChartBarIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/outline";
-import { Fragment, useCallback, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogHeader,
@@ -40,71 +40,80 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import { LabeledTextInput } from "./sourceConfig/page";
-import { compact, isEmpty } from "lodash";
+import { compact, isEmpty, pick } from "lodash";
+import { getConnectors, postConnector } from "@/requests";
 
-const connectors = [
-  {
-    value: "influxDb",
+const optionsToArray = (options) => {
+  if (Array.isArray(options)) {
+    return options;
+  }
+  return Object.entries(options).map(([type, option]) => ({
+    type,
+    ...option,
+  }));
+};
+
+const connectorOptions = {
+  influx_db: {
     icon: DatabaseIcon,
     label: "Influx DB",
     disabled: true,
   },
-  {
-    value: "csvDownload",
+  csv_download: {
     icon: DatabaseIcon,
     label: "CSV Download",
   },
-  {
-    value: "timescaleDb",
+  timescale_db: {
     icon: DatabaseIcon,
     label: "Timescale DB",
     disabled: true,
   },
-];
+};
 
-const analysis = [
+const analysisOptions = [
   {
-    value: "changePointDetection",
+    type: "changePointDetection",
     icon: LightningBoltIcon,
     label: "Change Point Detection",
   },
   {
-    value: "trend",
+    type: "trend",
     icon: TrendingUpIcon,
     label: "Trend Detection",
   },
   {
-    value: "custom",
+    type: "custom",
     icon: PencilIcon,
     label: "Custom",
   },
 ];
 
-const reporting = [
+const reportingOptions = [
   {
-    value: "email",
+    type: "email",
     icon: InboxInIcon,
     label: "Email",
   },
   {
-    value: "icinga",
+    type: "icinga",
     icon: BellIcon,
     label: "Icinga Alert",
   },
   {
-    value: "serviceDesk",
+    type: "serviceDesk",
     icon: SupportIcon,
     label: "Service Desk",
   },
 ];
 
 export const SelectAdd = ({
-  options = [],
+  options: inOptions = [],
   addButtonIcon = PlusIcon,
   addButtonLabel = "Add",
   onAddClick,
   onAddLink,
 }) => {
+  const options = optionsToArray(inOptions) || [];
   const [selected, setSelected] = useState(undefined);
   const [selectError, setSelectorError] = useState(undefined);
 
@@ -121,7 +130,6 @@ export const SelectAdd = ({
   );
 
   const onAddButtonClick = useCallback(() => {
-    console.log("onAddButtonClick", selected);
     if (!selected) {
       setSelectorError(true);
       return;
@@ -129,7 +137,7 @@ export const SelectAdd = ({
     if (!onAddClick) {
       return;
     }
-    onAddClick("csvDownload");
+    onAddClick(selected);
   }, [onAddClick, selected]);
 
   return (
@@ -138,8 +146,8 @@ export const SelectAdd = ({
         className={selectError ? "border-red-600 border-2" : undefined}
         onChange={onChangeSelect}
       >
-        {options.map(({ value, icon, label, disabled }) => (
-          <SelectItem key={value} value={value} icon={icon} disabled={disabled}>
+        {options.map(({ type, icon, label, disabled }) => (
+          <SelectItem key={type} value={type} icon={icon} disabled={disabled}>
             {label}
           </SelectItem>
         ))}
@@ -175,7 +183,13 @@ const reportingItems = [
   },
 ];
 
-export const ConfigurationList = ({ items = [], ...rest }) => {
+export const ConfigurationList = ({
+  options = {},
+  items: inItems = [],
+  ...rest
+}) => {
+  const items = inItems.filter((item) => item.type);
+
   if (!items || isEmpty(items)) {
     return (
       <Flex {...rest}>
@@ -192,13 +206,19 @@ export const ConfigurationList = ({ items = [], ...rest }) => {
         <List>
           {items.map((item, i) => {
             const subtitle = compact([
-              item.type,
-              ...Object.values(item.config || {}),
+              options?.[item.type]?.label || item.type,
+              ...compact(
+                Object.values(pick(item || {}, ["download_url", "ref_url"]))
+              ),
             ]).join(" - ");
             return (
               <ListItem key={i}>
                 <Flex alignItems="between">
-                  <Flex flexDirection="col" alignItems="start">
+                  <Flex
+                    flexDirection="col"
+                    alignItems="start"
+                    className="max-w-sm"
+                  >
                     <Title>{item.name}</Title>
                     <Subtitle>{subtitle}</Subtitle>
                   </Flex>
@@ -234,6 +254,7 @@ export const Setup = () => {
     [dialogFields, setDialogFields]
   );
 
+  /*
   const [connectorItems, setConnectorItems] = useState([]);
   const addConnectorItem = useCallback(() => {
     setConnectorItems([
@@ -255,6 +276,25 @@ export const Setup = () => {
     setDialogFields,
     handleOpen,
   ]);
+  */
+  const [connectors, setConnectors] = useState([]);
+  const addConnector = useCallback(async () => {
+    const connector = await postConnector({
+      ...dialogFields,
+      type: "csv_download",
+    });
+    const connectors = await getConnectors();
+    setConnectors(connectors);
+    handleOpen();
+    setDialogFields({});
+  }, [dialogFields, setDialogFields, handleOpen]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const connectors = await getConnectors();
+      setConnectors(connectors);
+    };
+    fetchData();
+  }, [setConnectors]);
 
   return (
     <div>
@@ -269,15 +309,19 @@ export const Setup = () => {
             <Icon icon={DocumentReportIcon} />
             <Title>Source</Title>
           </Flex>
-          <SelectAdd options={connectors} onAddClick={handleOpen} />
-          <ConfigurationList items={connectorItems} className="mt-4" />
+          <SelectAdd options={connectorOptions} onAddClick={handleOpen} />
+          <ConfigurationList
+            options={connectorOptions}
+            items={connectors}
+            className="mt-4"
+          />
         </Col>
         <Col numColSpan={1}>
           <Flex alignItems="center" justifyContent="center" className="mb-4">
             <Icon icon={SparklesIcon} />
             <Title>Analysis</Title>
           </Flex>
-          <SelectAdd options={analysis} />
+          <SelectAdd options={analysisOptions} />
           <ConfigurationList items={analysisItems} className="mt-4" />
         </Col>
         <Col numColSpan={1}>
@@ -285,7 +329,7 @@ export const Setup = () => {
             <Icon icon={PresentationChartLineIcon} />
             <Title>Reporting</Title>
           </Flex>
-          <SelectAdd options={reporting} />
+          <SelectAdd options={reportingOptions} />
           <ConfigurationList items={reportingItems} className="mt-4" />
         </Col>
       </Grid>
@@ -307,17 +351,25 @@ export const Setup = () => {
                 </ListItem>
                 <ListItem>
                   <LabeledTextInput
-                    onChange={setDialogField("downloadUrl")}
-                    value={dialogFields.downloadUrl || ""}
+                    onChange={setDialogField("download_url")}
+                    value={dialogFields.download_url || ""}
                     label="Download URL"
                     placeholder="Download url for a csv with timeseries data"
+                  />
+                </ListItem>
+                <ListItem>
+                  <LabeledTextInput
+                    onChange={setDialogField("ref_url")}
+                    value={dialogFields.ref_url || ""}
+                    label="Reference URL"
+                    placeholder="Reference URL, e.g. to the internal data visualization tool"
                   />
                 </ListItem>
               </List>
             </DialogBody>
             <DialogFooter>
               <Button onClick={handleOpen}>Cancel</Button>
-              <Button className="ml-4" onClick={addConnectorItem}>
+              <Button className="ml-4" onClick={addConnector}>
                 Save
               </Button>
             </DialogFooter>

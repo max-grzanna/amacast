@@ -2,6 +2,8 @@ import express, { json } from "express";
 import { migrate } from "./db";
 import { corsMiddleware } from "./middleware/corsMiddleware";
 import { connectorRouter } from "./router";
+import { runAllAnalysis } from "./service/analysis";
+import { runIngestAll } from "./service/ingest";
 
 const main = async () => {
   // connect to db and run migrations
@@ -25,6 +27,16 @@ const main = async () => {
   // ping endpoint to check for liveliness
   app.get("/ping", (_req, res) => {
     res.send("pong");
+  });
+
+  app.get("/trigger/runIngestAll", async (req, res) => {
+    const result = await runIngestAll();
+    res.send(result);
+  });
+
+  app.get("/trigger/runAnalysisAll", async (req, res) => {
+    const result = await runAllAnalysis();
+    res.send(result);
   });
 
   // app routers
