@@ -46,6 +46,48 @@ const analysisByTypeMap = {
   trend: fetchCapacity,
 };
 
+const persistChangePoint = async (config, result) => {
+  const { analysis_id, timeseries_id } = config;
+  const { changepoints } = result;
+  if (Array.isArray(changepoints)) {
+    const [timestamp_start, timestamp_end] = changepoints;
+    return await db("warning")
+      .insert({
+        timeseries_id,
+        analysis_id,
+        timestamp_start,
+        timestamp_end,
+      })
+      .onConflict()
+      .ignore()
+      .returning("*");
+  }
+  return Promise.resolve(null);
+};
+
+const persistTrend = async (config, result) => {
+  const { analysis_id, timeseries_id } = config;
+  const { type, overrun_date } = result;
+  if (overrun_date) {
+    return await db("trend")
+      .insert({
+        timeseries_id,
+        analysis_id,
+        timestamp: overrun_date,
+        trend_type: type,
+      })
+      .onConflict()
+      .ignore()
+      .returning("*");
+  }
+  return Promise.resolve(null);
+};
+
+const resultPersistByTypeMap = {
+  change_point: persistChangePoint,
+  trend: persistTrend,
+};
+
 const runAnalysis = async (config) => {
   const logPrefix = `runAnalysis ${config.analysis_name} ${config.timeseries_identifier}`;
   const from = moment().subtract(6, "months").toDate();
@@ -59,7 +101,8 @@ const runAnalysis = async (config) => {
   const analyser = analysisByTypeMap[config.analysis_type];
   const result = await analyser(data, config);
   console.log(logPrefix, "result", result);
-  return result;
+  const persister = resultPersistByTypeMap[config.analysis_type];
+  return await persister(config, result);
 };
 
 export const runAllAnalysis = async () => {

@@ -1,9 +1,9 @@
 import express, { json } from "express";
 import { migrate } from "./db";
 import { corsMiddleware } from "./middleware/corsMiddleware";
-import { connectorRouter } from "./router";
 import { runAllAnalysis } from "./service/analysis";
 import { runIngestAll } from "./service/ingest";
+import { createRestRouter } from "./router/restRouterfactory";
 
 const main = async () => {
   // connect to db and run migrations
@@ -40,7 +40,11 @@ const main = async () => {
   });
 
   // app routers
-  app.use("/connector", connectorRouter);
+  app.use("/connector", createRestRouter("connector"));
+  app.use("/timeseries", createRestRouter("timeseries"));
+  app.use("/analysis", createRestRouter("analysis"));
+  app.use("/warning", createRestRouter("warning"));
+  app.use("/trend", createRestRouter("trend"));
 
   const port = process.env.PORT || 8080;
   // start express server
