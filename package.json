@@ -6,7 +6,9 @@
     "prettier": "^2.8.8"
   },
   "lint-staged": {
-    "amacast-frontend/**.{js,css,md}": "prettier --write"
+    "amacast-frontend/**.{js,css,md}": "prettier --write",
+    "backend/**.{js,css,md}": "prettier --write",
+    "*.{js,css,md}": "prettier --write"
   },
   "scripts": {
     "prepare": "husky install"

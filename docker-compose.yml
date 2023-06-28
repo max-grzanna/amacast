@@ -1,6 +1,13 @@
 version: '1.0'
 
 services:
+  analysis:
+    build:
+      context: ./analysis
+      dockerfile: Dockerfile
+    expose: 
+      - 5000
+
   db:
     image: timescale/timescaledb:2.11.0-pg15
     ports:
@@ -13,24 +20,20 @@ services:
       - POSTGRES_DB=amacast
       - TZ=Europe/Berlin
 
-  analysis:
-    build:
-      context: ./analysis
-      dockerfile: Dockerfile
-    expose: 
-      - 5000
-
   backend:
     build:
-      context: ./amacast-server
+      context: ./backend
       dockerfile: Dockerfile
+    expose:
+      - 7001
     depends_on:
       - db
-      - analysis
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=amacast
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=pass
+      - DB_NAME=amacast
       - TZ=Europe/Berlin
       - ANALYSIS_HOST=http://analysis:5000
   
@@ -38,5 +41,7 @@ services:
     build:
       context: ./amacast-frontend
       dockerfile: Dockerfile
+    depends_on:
+      - backend
     ports:
       - 7002:3000
