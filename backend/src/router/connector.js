@@ -5,7 +5,7 @@ export const connectorRouter = Router();
 
 const getConnector = async (req, res, next) => {
   const connectors = await db("connector").select("*");
-  return connectors;
+  res.send(connectors);
 };
 
 const postConnector = async (req, res, next) => {
