@@ -47,34 +47,18 @@ const analysisByTypeMap = {
 };
 
 const runAnalysis = async (config) => {
+  const logPrefix = `runAnalysis ${config.analysis_name} ${config.timeseries_identifier}`;
   const from = moment().subtract(6, "months").toDate();
-  console.log(
-    "runAnalysis",
-    config.analysis_name,
-    config.timeseries_identifier,
-    { from }
-  );
+  console.log(logPrefix, { from });
   const data = await db
     .select(["timestamp", "value"])
     .from("timeseries_data")
     .where({ timeseries_id: config.timeseries_id })
     .andWhere("timestamp", ">", from);
-  console.log(
-    "runAnalysis",
-    config.analysis_name,
-    config.timeseries_identifier,
-    "dataSample",
-    data[0]
-  );
+  console.log(logPrefix, "dataSample", data[0]);
   const analyser = analysisByTypeMap[config.analysis_type];
   const result = await analyser(data, config);
-  console.log(
-    "runAnalysis",
-    config.analysis_name,
-    config.timeseries_identifier,
-    "result",
-    result
-  );
+  console.log(logPrefix, "result", result);
   return result;
 };
 
