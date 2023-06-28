@@ -30,7 +30,7 @@ const main = async () => {
   // app routers
   app.use("/connector", connectorRouter);
 
-  const port = process.env.PORT || 7001;
+  const port = process.env.PORT || 8080;
   // start express server
   app.listen(port, () => {
     console.info(`backend listening on port ${port}`);

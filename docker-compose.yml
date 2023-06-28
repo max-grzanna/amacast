@@ -6,7 +6,9 @@ services:
       context: ./analysis
       dockerfile: Dockerfile
     expose: 
-      - 5000
+      - 5001
+    ports:
+      - 7001:5000
 
   db:
     image: timescale/timescaledb:2.11.0-pg15
@@ -24,8 +26,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    expose:
-      - 7001
+    ports:
+      - 7002:8080
     depends_on:
       - db
     environment:
@@ -44,4 +46,4 @@ services:
     depends_on:
       - backend
     ports:
-      - 7002:3000
+      - 7003:3000

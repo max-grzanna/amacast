@@ -10,7 +10,8 @@ RUN  npm install --production
 COPY migrations ./migrations
 COPY src ./src
 
-EXPOSE 7001
+ENV PORT=8080
+EXPOSE 8080
 
 ENTRYPOINT [ "npm" ]
 CMD ["start"]
