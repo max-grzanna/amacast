@@ -21,13 +21,14 @@ export default () => {
       const configs = await getConfigs();
       setConfigs(configs);
     };
+    fetchData();
     const interval = setInterval(() => {
       fetchData();
     }, 10000);
     return () => clearInterval(interval);
   }, [setConfigs]);
   return (
-    <Card>
+    <Card decoration="top">
       <Title>Status of detected configurations</Title>
       <Table className="mt-5">
         <TableHead>

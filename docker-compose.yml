@@ -5,6 +5,7 @@ services:
     build:
       context: ./analysis
       dockerfile: Dockerfile
+    restart: unless-stopped
     expose: 
       - 5001
     ports:
@@ -16,6 +17,7 @@ services:
       - 7432:5432
     expose: 
       - 5432
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
@@ -32,6 +34,7 @@ services:
       - 7002:8080
     depends_on:
       - db
+    restart: unless-stopped
     environment:
       - DB_HOST=db
       - DB_PORT=5432
@@ -45,6 +48,7 @@ services:
     build:
       context: ./amacast-frontend
       dockerfile: Dockerfile
+    restart: unless-stopped
     depends_on:
       - backend
     ports:
@@ -54,6 +58,7 @@ services:
     build:
       context: .
       dockerfile: ./data-server/Dockerfile
+    restart: unless-stopped
     expose: 
       - 8080
     ports:

@@ -1,43 +1,62 @@
 import moment from "moment";
+import { fetchToCurl } from "fetch-to-curl";
 import { db } from "../db";
 
 const analysisHost = process.env.ANALYSIS_HOST || "http://localhost:7001";
 
-const fetchCapacity = async (data, config) => {
-  const response = await fetch(`${analysisHost}/capacity`, {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
+const fetchCapacity = async (inData, config) => {
+  const data = inData.map(({ timestamp, value }) => ({
+    time: moment(timestamp).format("YYYY-MM-DD HH:mm:ss.SSS"),
+    value,
+  }));
+  const fetchParams = [
+    `${analysisHost}/capacity`,
+    {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        file_name: "api.csv",
+        data,
+        max_capacity: config.analysis_max_capacity,
+        min_capacity: config.analysis_min_capacity,
+      }),
     },
-    body: JSON.stringify({
-      file_name: "api.csv",
-      data: data.map(({ timestamp, value }) => ({
-        time: moment(timestamp).format("YYYY-MM-DD HH:mm:ss.SSS"),
-        value,
-      })),
-      max_capacity: config.analysis_max_capacity,
-      min_capacity: config.analysis_min_capacity,
-    }),
-  });
+  ];
+  if (!data || !data.length) {
+    return null;
+  }
+  //console.log(fetchToCurl(...fetchParams));
+  const response = await fetch(...fetchParams);
   return response.json();
 };
 
-const fetchChangePoint = async (data) => {
-  const response = await fetch(`${analysisHost}/changepoints`, {
-    method: "POST",
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
+const fetchChangePoint = async (inData) => {
+  const data = inData.map(({ timestamp, value }) => ({
+    time: moment(timestamp).format("YYYY-MM-DD HH:mm:ss.SSS"),
+    value,
+  }));
+  const fetchParams = [
+    `${analysisHost}/changepoints`,
+    {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        file_name: "api.csv",
+        data,
+      }),
     },
-    body: JSON.stringify({
-      file_name: "api.csv",
-      data: data.map(({ timestamp, value }) => ({
-        time: moment(timestamp).format("YYYY-MM-DD HH:mm:ss.SSS"),
-        value,
-      })),
-    }),
-  });
+  ];
+  if (!data || !data.length) {
+    return null;
+  }
+  //console.log(fetchToCurl(...fetchParams));
+  const response = await fetch(...fetchParams);
   return response.json();
 };
 
@@ -100,6 +119,10 @@ const runAnalysis = async (config) => {
   console.log(logPrefix, "dataSample", data[0]);
   const analyser = analysisByTypeMap[config.analysis_type];
   const result = await analyser(data, config);
+  if (!result) {
+    console.error(logPrefix, "no result from analyser", result);
+    return null;
+  }
   console.log(logPrefix, "result", result);
   const persister = resultPersistByTypeMap[config.analysis_type];
   return await persister(config, result);

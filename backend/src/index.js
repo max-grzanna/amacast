@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express, { json } from "express";
 import { migrate } from "./db";
 import { corsMiddleware } from "./middleware/corsMiddleware";
@@ -5,6 +6,8 @@ import { runAllAnalysis } from "./service/analysis";
 import { runIngestAll } from "./service/ingest";
 import { createRestRouter } from "./router/restRouterfactory";
 import { customRouter } from "./router/custom";
+
+//console.log("ENV", process.env);
 
 const main = async () => {
   // connect to db and run migrations

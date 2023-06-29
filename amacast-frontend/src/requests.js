@@ -1,6 +1,9 @@
 import { camelCase } from "lodash";
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
+const BACKEND_URL =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:7002";
 
 export const postConnector = async (data) => {
   const response = await fetch(BACKEND_URL + "/connector", {
@@ -21,4 +24,23 @@ export const getConnectors = async () => {
 export const getConfigs = async () => {
   const response = await fetch(BACKEND_URL + "/custom/config");
   return await response.json();
+};
+
+export const getWarnings = async () => {
+  const response = await fetch(BACKEND_URL + "/warning");
+  return await response.json();
+};
+
+export const getTrend = async () => {
+  const response = await fetch(BACKEND_URL + "/trend");
+  return await response.json();
+};
+
+export const triggerIngest = async () => {
+  await fetch(BACKEND_URL + "/trigger/runIngestAll");
+  await fetch(BACKEND_URL + "/trigger/runAnalysisAll");
+};
+
+export const triggerAnalysis = async () => {
+  await fetch(BACKEND_URL + "/trigger/runAnalysisAll");
 };

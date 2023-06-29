@@ -41,7 +41,12 @@ import {
 } from "@material-tailwind/react";
 import { LabeledTextInput } from "./sourceConfig/page";
 import { compact, isEmpty, pick } from "lodash";
-import { getConnectors, postConnector } from "@/requests";
+import {
+  getConnectors,
+  postConnector,
+  triggerAnalysis,
+  triggerIngest,
+} from "@/requests";
 import ConfigsTable from "./ConfigsTable";
 
 const optionsToArray = (options) => {
@@ -288,6 +293,7 @@ export const Setup = () => {
     setConnectors(connectors);
     handleOpen();
     setDialogFields({});
+    triggerIngest();
   }, [dialogFields, setDialogFields, handleOpen]);
   useEffect(() => {
     const fetchData = async () => {
