@@ -48,6 +48,8 @@ import {
   triggerIngest,
 } from "@/requests";
 import ConfigsTable from "./ConfigsTable";
+import { ConnectorDialog } from "./ConnectorDialog";
+import { AnalysisDialog } from "./AnalysisDialog";
 
 const optionsToArray = (options) => {
   if (Array.isArray(options)) {
@@ -244,20 +246,41 @@ export const ConfigurationList = ({
 };
 
 export const Setup = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const handleOpen = useCallback(() => {
-    setIsDialogOpen(!isDialogOpen);
-  }, [isDialogOpen, setIsDialogOpen]);
+  const [connectorDialogOpen, setConnectorDialogOpen] = useState(null);
+  const handleConnectorDialogOpen = useCallback(
+    (type) => {
+      setConnectorDialogOpen(type);
+    },
+    [connectorDialogOpen, setConnectorDialogOpen]
+  );
+  const isConnectorDialogOpen = Boolean(connectorDialogOpen);
 
-  const [dialogFields, setDialogFields] = useState({});
-  const setDialogField = useCallback(
+  const [analysisDialogOpen, setAnalysisDialogOpen] = useState(null);
+  const handleAnalysisDialogOpen = useCallback(() => {
+    setConnectorDialogOpen(type);
+  }, [analysisDialogOpen, setAnalysisDialogOpen]);
+  const isAnalysisDialogOpen = Boolean(analysisDialogOpen);
+
+  const [connectorDialogFields, setConnectorDialogFields] = useState({});
+  const setConnectorDialogField = useCallback(
     (field) => (event) => {
-      setDialogFields({
-        ...dialogFields,
+      setConnectorDialogFields({
+        ...connectorDialogFields,
         [field]: event.target.value,
       });
     },
-    [dialogFields, setDialogFields]
+    [connectorDialogFields, setConnectorDialogFields]
+  );
+
+  const [analysisDialogFields, setAnalysisDialogFields] = useState({});
+  const setAnalysisDialogField = useCallback(
+    (field) => (event) => {
+      setAnalysisDialogFields({
+        ...analysisDialogFields,
+        [field]: event.target.value,
+      });
+    },
+    [analysisDialogFields, setAnalysisDialogFields]
   );
 
   /*
@@ -286,15 +309,24 @@ export const Setup = () => {
   const [connectors, setConnectors] = useState([]);
   const addConnector = useCallback(async () => {
     const connector = await postConnector({
-      ...dialogFields,
+      ...connectorDialogFields,
       type: "csv_download",
     });
     const connectors = await getConnectors();
     setConnectors(connectors);
-    handleOpen();
-    setDialogFields({});
+    handleConnectorDialogOpen(null);
+    setConnectorDialogFields({});
     triggerIngest();
-  }, [dialogFields, setDialogFields, handleOpen]);
+  }, [
+    connectorDialogFields,
+    setConnectorDialogFields,
+    handleConnectorDialogOpen,
+  ]);
+  const addAnalysis = useCallback(async () => {
+    handleAnalysisDialogOpen(null);
+    setAnalysisDialogFields({});
+    triggerIngest();
+  }, [analysisDialogFields, setAnalysisDialogFields, handleAnalysisDialogOpen]);
   useEffect(() => {
     const fetchData = async () => {
       const connectors = await getConnectors();
@@ -316,7 +348,10 @@ export const Setup = () => {
             <Icon icon={DocumentReportIcon} />
             <Title>Source</Title>
           </Flex>
-          <SelectAdd options={connectorOptions} onAddClick={handleOpen} />
+          <SelectAdd
+            options={connectorOptions}
+            onAddClick={handleConnectorDialogOpen}
+          />
           <ConfigurationList
             options={connectorOptions}
             items={connectors}
@@ -328,7 +363,10 @@ export const Setup = () => {
             <Icon icon={SparklesIcon} />
             <Title>Analysis</Title>
           </Flex>
-          <SelectAdd options={analysisOptions} />
+          <SelectAdd
+            options={analysisOptions}
+            onAddClick={handleAnalysisDialogOpen}
+          />
           <ConfigurationList items={analysisItems} className="mt-4" />
         </Col>
         <Col numColSpan={1}>
@@ -343,49 +381,20 @@ export const Setup = () => {
       <Flex className="mt-10">
         <ConfigsTable />
       </Flex>
-      <Dialog open={isDialogOpen} handler={handleOpen}>
-        <Flex justifyContent="center" alignItems="center" className="mt-10">
-          <Card className="max-w-xl auto" decoration="top">
-            <DialogHeader>
-              <Title>CSV Download Connector Configuration</Title>
-            </DialogHeader>
-            <DialogBody divider>
-              <List className="mt-2">
-                <ListItem>
-                  <LabeledTextInput
-                    onChange={setDialogField("name")}
-                    value={dialogFields.name || ""}
-                    label="Name"
-                    placeholder="Human readable name"
-                  />
-                </ListItem>
-                <ListItem>
-                  <LabeledTextInput
-                    onChange={setDialogField("download_url")}
-                    value={dialogFields.download_url || ""}
-                    label="Download URL"
-                    placeholder="Download url for a csv with timeseries data"
-                  />
-                </ListItem>
-                <ListItem>
-                  <LabeledTextInput
-                    onChange={setDialogField("ref_url")}
-                    value={dialogFields.ref_url || ""}
-                    label="Reference URL"
-                    placeholder="Reference URL, e.g. to the internal data visualization tool"
-                  />
-                </ListItem>
-              </List>
-            </DialogBody>
-            <DialogFooter>
-              <Button onClick={handleOpen}>Cancel</Button>
-              <Button className="ml-4" onClick={addConnector}>
-                Save
-              </Button>
-            </DialogFooter>
-          </Card>
-        </Flex>
-      </Dialog>
+      <ConnectorDialog
+        isDialogOpen={isConnectorDialogOpen}
+        handleOpen={handleConnectorDialogOpen}
+        add={addConnector}
+        dialogFields={connectorDialogFields}
+        setDialogField={setConnectorDialogField}
+      />
+      <AnalysisDialog
+        isDialogOpen={isAnalysisDialogOpen}
+        handleOpen={handleAnalysisDialogOpen}
+        add={addAnalysis}
+        dialogFields={analysisDialogFields}
+        setDialogField={setAnalysisDialogField}
+      />
     </div>
   );
 };
