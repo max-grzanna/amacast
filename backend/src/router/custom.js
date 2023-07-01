@@ -1,4 +1,5 @@
 import { Router } from "express";
+import moment from "moment";
 import { db } from "../db";
 
 const router = Router();
@@ -46,5 +47,21 @@ const getConfigs = async (req, res, next) => {
   return;
 };
 
+const getTimeseriesData = async (req, res, next) => {
+  const from = moment().subtract(6, "months").toDate();
+  const timeseries_id = req.params.timeseries_id;
+  if (!timeseries_id) {
+    return [];
+  }
+  const data = await db
+    .select(["timestamp", "value"])
+    .from("timeseries_data")
+    .where({ timeseries_id })
+    .andWhere("timestamp", ">", from);
+  res.send(data);
+  return;
+};
+
 router.get("/config", getConfigs);
+router.get("/timeseries_data/:timeseries_id", getTimeseriesData);
 export const customRouter = router;

@@ -4,7 +4,12 @@ dump-db:
 down:
 	docker-compose down -v
 
+stop:
+	docker-compose stop
+
 up:
 	docker-compose up -d --build
 
 restart: down up
+
+reload: down up

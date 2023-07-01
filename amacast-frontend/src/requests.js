@@ -31,8 +31,15 @@ export const getWarnings = async () => {
   return await response.json();
 };
 
-export const getTrend = async () => {
+export const getTrends = async () => {
   const response = await fetch(BACKEND_URL + "/trend");
+  return await response.json();
+};
+
+export const getTimeseriesData = async (timeseries_id) => {
+  const response = await fetch(
+    BACKEND_URL + `/custom/timeseries_data/${timeseries_id}`
+  );
   return await response.json();
 };
 

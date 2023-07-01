@@ -5,8 +5,15 @@ export const createRestRouter = (tableName) => {
   const router = Router();
 
   const get = async (req, res, next) => {
-    const connectors = await db(tableName).select("*");
-    res.send(connectors);
+    let data = [];
+    if (tableName === "warning") {
+      data = await db(tableName).select("*").orderBy("timestamp_start", "asc");
+    } else if (tableName === "trend") {
+      data = await db(tableName).select("*").orderBy("timestamp", "asc");
+    } else {
+      data = await db(tableName).select("*");
+    }
+    res.send(data);
   };
 
   const post = async (req, res, next) => {

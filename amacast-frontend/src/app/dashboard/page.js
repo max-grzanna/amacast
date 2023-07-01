@@ -27,6 +27,8 @@ import {
   triggerAnalysis,
 } from "@/requests";
 import ConfigsTable from "../setup/ConfigsTable";
+import { WarningCard } from "./WarningCard";
+import { TrendCard } from "./TrendCard";
 
 const optionsToArray = (options) => {
   if (Array.isArray(options)) {
@@ -59,8 +61,8 @@ export const Dashboard = () => {
   const [warnings, setWarnings] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
-      const configs = await getWarnings();
-      setWarnings(configs);
+      const data = await getWarnings();
+      setWarnings(data);
     };
     fetchData();
     const interval = setInterval(() => {
@@ -68,6 +70,18 @@ export const Dashboard = () => {
     }, 10000);
     return () => clearInterval(interval);
   }, [setWarnings]);
+  const [trends, setTrends] = useState([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getTrends();
+      setTrends(data);
+    };
+    fetchData();
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [setTrends]);
 
   return (
     <div>
@@ -78,47 +92,10 @@ export const Dashboard = () => {
       </a>
 
       <Flex className="mt-10">
-        <Card decoration="top">
-          <Title>Anomalies</Title>
-          <Grid
-            numItems={1}
-            numItemsSm={1}
-            numItemsLg={3}
-            className="gap-6 mt-6"
-          >
-            {warnings.map((warning) => {
-              const config = getConfig(warning);
-              return (
-                <Col key={warning.id}>
-                  <Card className="max-w-lg mx-auto">
-                    <Flex alignItems="start">
-                      <div>
-                        <Text>{`${config?.analysis_name}`}</Text>
-                        <Title>{`${config?.timeseries_identifier} (${config?.connector_name})`}</Title>
-                      </div>
-                      <Badge color="red" size="xs">
-                        Open
-                      </Badge>
-                    </Flex>
-                    <Flex className="mt-4">
-                      <Text className="truncate">
-                        {moment(warning.timestamp_start).format(
-                          "YYYY-MM-DD HH:mm"
-                        )}
-                      </Text>
-                      <Text className="truncate">
-                        {moment(warning.timestamp_end).format(
-                          "YYYY-MM-DD HH:mm"
-                        )}
-                      </Text>
-                    </Flex>
-                    <ProgressBar value={0} className="mt-2" />
-                  </Card>
-                </Col>
-              );
-            })}
-          </Grid>
-        </Card>
+        <WarningCard warnings={warnings} getConfig={getConfig} />
+      </Flex>
+      <Flex className="mt-10">
+        <TrendCard trends={trends} getConfig={getConfig} />
       </Flex>
 
       <Flex className="mt-10">

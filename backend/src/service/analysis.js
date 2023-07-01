@@ -72,6 +72,7 @@ const persistChangePoint = async (config, result) => {
     const [timestamp_start, timestamp_end] = changepoints;
     return await db("warning")
       .insert({
+        created_at: new Date(),
         timeseries_id,
         analysis_id,
         timestamp_start,
@@ -90,6 +91,7 @@ const persistTrend = async (config, result) => {
   if (overrun_date) {
     return await db("trend")
       .insert({
+        created_at: new Date(),
         timeseries_id,
         analysis_id,
         timestamp: overrun_date,
@@ -109,7 +111,7 @@ const resultPersistByTypeMap = {
 
 const runAnalysis = async (config) => {
   const logPrefix = `runAnalysis ${config.analysis_name} ${config.timeseries_identifier}`;
-  const from = moment().subtract(6, "months").toDate();
+  const from = moment().subtract(6, "months").startOf("month").toDate();
   console.log(logPrefix, { from });
   const data = await db
     .select(["timestamp", "value"])
@@ -118,14 +120,19 @@ const runAnalysis = async (config) => {
     .andWhere("timestamp", ">", from);
   console.log(logPrefix, "dataSample", data[0]);
   const analyser = analysisByTypeMap[config.analysis_type];
-  const result = await analyser(data, config);
-  if (!result) {
-    console.error(logPrefix, "no result from analyser", result);
+  try {
+    const result = await analyser(data, config);
+    if (!result) {
+      console.error(logPrefix, "no result from analyser", result);
+      return null;
+    }
+    console.log(logPrefix, "result", result);
+    const persister = resultPersistByTypeMap[config.analysis_type];
+    return await persister(config, result);
+  } catch (e) {
+    console.error(logPrefix, e);
     return null;
   }
-  console.log(logPrefix, "result", result);
-  const persister = resultPersistByTypeMap[config.analysis_type];
-  return await persister(config, result);
 };
 
 export const runAllAnalysis = async () => {

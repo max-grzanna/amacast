@@ -5,6 +5,7 @@ export const up = (knex) => {
       table.increments("id").primary();
       table.integer("timeseries_id").references("timeseries.id");
       table.integer("analysis_id").references("analysis.id");
+      table.datetime("created_at");
       table.datetime("timestamp");
       table.string("trend_type"); // upper, lower
       table.string("reaction_type"); // resolve, ignore
@@ -22,6 +23,7 @@ export const up = (knex) => {
       table.integer("timeseries_id").references("timeseries.id");
       table.integer("analysis_id").references("analysis.id");
       table.integer("trend_id").references("trend.id");
+      table.datetime("created_at");
       table.datetime("timestamp_start");
       table.datetime("timestamp_end");
       table.string("reaction_type"); // resolve, ignore
