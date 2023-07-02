@@ -51,17 +51,23 @@ import ConfigsTable from "./ConfigsTable";
 
 export const AnalysisDialog = ({
   isDialogOpen,
+  type,
   handleOpen,
   dialogFields,
   setDialogField,
   add,
 }) => {
+  console.log("AnalysisDialog", type, dialogFields);
+
   return (
     <Dialog open={isDialogOpen} handler={() => handleOpen(null)}>
       <Flex justifyContent="center" alignItems="center" className="mt-10">
         <Card className="max-w-xl auto" decoration="top">
           <DialogHeader>
-            <Title>CSV Download Connector Configuration</Title>
+            {type === "trend" && <Title>Trend Detection Configuration</Title>}
+            {type === "change_point" && (
+              <Title>Change Point Detection Configuration</Title>
+            )}
           </DialogHeader>
           <DialogBody divider>
             <List className="mt-2">
@@ -75,12 +81,32 @@ export const AnalysisDialog = ({
               </ListItem>
               <ListItem>
                 <LabeledTextInput
-                  onChange={setDialogField("ref_url")}
-                  value={dialogFields.ref_url || ""}
-                  label="Reference URL"
-                  placeholder="Reference URL, e.g. to the internal data visualization tool"
+                  onChange={setDialogField("identifier_matcher")}
+                  value={dialogFields.identifier_matcher || ""}
+                  label="Data identifier matcher"
+                  placeholder="(opt) e.g. %System_Fan%"
                 />
               </ListItem>
+              {type === "trend" && (
+                <ListItem>
+                  <LabeledTextInput
+                    onChange={setDialogField("upper_limit")}
+                    value={dialogFields.upper_limit || ""}
+                    label="Upper Bound"
+                    placeholder="(opt) Enter a known upper bound for a long term trend prediction"
+                  />
+                </ListItem>
+              )}
+              {type === "trend" && (
+                <ListItem>
+                  <LabeledTextInput
+                    onChange={setDialogField("lower_limit")}
+                    value={dialogFields.lower_limit || ""}
+                    label="Lower Bound"
+                    placeholder="(opt) Enter a known lower bound for a long term trend prediction"
+                  />
+                </ListItem>
+              )}
             </List>
           </DialogBody>
           <DialogFooter>

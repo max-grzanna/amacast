@@ -16,8 +16,46 @@ export const postConnector = async (data) => {
   return await response.json();
 };
 
+export const patchConnector = async (data) => {
+  const response = await fetch(BACKEND_URL + `/connector/${data.id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return await response.json();
+};
+
 export const getConnectors = async () => {
   const response = await fetch(BACKEND_URL + "/connector");
+  return await response.json();
+};
+
+export const postAnalysis = async (data) => {
+  const response = await fetch(BACKEND_URL + "/analysis", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return await response.json();
+};
+
+export const patchAnalysis = async (data) => {
+  const response = await fetch(BACKEND_URL + `/analysis/${data.id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return await response.json();
+};
+
+export const getAnalysis = async () => {
+  const response = await fetch(BACKEND_URL + "/analysis");
   return await response.json();
 };
 

@@ -96,7 +96,8 @@ export const TrendRow = ({ trend, config }) => {
     return {
       timestamp: `${moment(item.timestamp).format("  DD.MM.  ")}`,
       value: item.value,
-      limit: 18,
+      upper_limit: trend?.upper_limit || config?.analysis_upper_limit,
+      lower_limit: trend?.lower_limit || config?.analysis_lower_limit,
     };
   });
 
@@ -125,8 +126,8 @@ export const TrendRow = ({ trend, config }) => {
             className="mt-6 w-full"
             data={lineChartData}
             index="timestamp"
-            categories={["value", "limit"]}
-            colors={["emerald", "red"]}
+            categories={["value", "upper_limit", "lower_limit"]}
+            colors={["emerald", "red", "red"]}
             valueFormatter={dataFormatter}
             yAxisWidth={60}
             showLegend={false}

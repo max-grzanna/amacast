@@ -40,9 +40,13 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import { LabeledTextInput } from "./sourceConfig/page";
-import { compact, isEmpty, pick } from "lodash";
+import { compact, get, isEmpty, pick } from "lodash";
 import {
+  getAnalysis,
   getConnectors,
+  patchAnalysis,
+  patchConnector,
+  postAnalysis,
   postConnector,
   triggerAnalysis,
   triggerIngest,
@@ -78,23 +82,20 @@ const connectorOptions = {
   },
 };
 
-const analysisOptions = [
-  {
-    type: "changePointDetection",
+const analysisOptions = {
+  change_point: {
     icon: LightningBoltIcon,
     label: "Change Point Detection",
   },
-  {
-    type: "trend",
+  trend: {
     icon: TrendingUpIcon,
     label: "Trend Detection",
   },
-  {
-    type: "custom",
+  custom: {
     icon: PencilIcon,
     label: "Custom",
   },
-];
+};
 
 const reportingOptions = [
   {
@@ -194,6 +195,7 @@ const reportingItems = [
 export const ConfigurationList = ({
   options = {},
   items: inItems = [],
+  onOpen,
   ...rest
 }) => {
   const items = inItems.filter((item) => item.type);
@@ -202,7 +204,7 @@ export const ConfigurationList = ({
     return (
       <Flex {...rest}>
         <Card {...rest} className="pt-2 pb-2">
-          <Text>No Source configured</Text>
+          <Text>None configured</Text>
         </Card>
       </Flex>
     );
@@ -213,24 +215,40 @@ export const ConfigurationList = ({
       <Card {...rest} className="pt-2 pb-2">
         <List>
           {items.map((item, i) => {
-            const subtitle = compact([
+            const subtitleItems = [
               options?.[item.type]?.label || item.type,
-              ...compact(
-                Object.values(pick(item || {}, ["download_url", "ref_url"]))
+              Object.values(
+                pick(item || {}, [
+                  "download_url",
+                  "ref_url",
+                  "identifier_matcher",
+                ])
               ),
-            ]).join(" - ");
+            ];
+            if (item.upper_limit) {
+              subtitleItems.push(`Upper Limit: ${item.upper_limit}`);
+            }
+            if (item.lower_limit) {
+              subtitleItems.push(`Lower Limit: ${item.lower_limit}`);
+            }
+            const subtitle = compact(
+              subtitleItems.filter((item) => !isEmpty(item)).join(" - ")
+            );
             return (
               <ListItem key={i}>
                 <Flex alignItems="between">
                   <Flex
                     flexDirection="col"
                     alignItems="start"
-                    className="max-w-sm"
+                    className="max-w-xs"
                   >
                     <Title>{item.name}</Title>
                     <Subtitle>{subtitle}</Subtitle>
                   </Flex>
                   <Button
+                    onClick={
+                      onOpen ? () => onOpen(item.type, item.id) : undefined
+                    }
                     className="pr-2 pl-10"
                     variant="light"
                     icon={ArrowRightIcon}
@@ -246,22 +264,14 @@ export const ConfigurationList = ({
 };
 
 export const Setup = () => {
-  const [connectorDialogOpen, setConnectorDialogOpen] = useState(null);
-  const handleConnectorDialogOpen = useCallback(
-    (type) => {
-      setConnectorDialogOpen(type);
-    },
-    [connectorDialogOpen, setConnectorDialogOpen]
-  );
-  const isConnectorDialogOpen = Boolean(connectorDialogOpen);
-
-  const [analysisDialogOpen, setAnalysisDialogOpen] = useState(null);
-  const handleAnalysisDialogOpen = useCallback(() => {
-    setConnectorDialogOpen(type);
-  }, [analysisDialogOpen, setAnalysisDialogOpen]);
-  const isAnalysisDialogOpen = Boolean(analysisDialogOpen);
+  const [connectors, setConnectors] = useState([]);
+  const [analysis, setAnalysis] = useState([]);
 
   const [connectorDialogFields, setConnectorDialogFields] = useState({});
+  const [analysisDialogFields, setAnalysisDialogFields] = useState({});
+  const [connectorDialogOpen, setConnectorDialogOpen] = useState(null);
+  const [analysisDialogOpen, setAnalysisDialogOpen] = useState(null);
+
   const setConnectorDialogField = useCallback(
     (field) => (event) => {
       setConnectorDialogFields({
@@ -271,10 +281,15 @@ export const Setup = () => {
     },
     [connectorDialogFields, setConnectorDialogFields]
   );
-
-  const [analysisDialogFields, setAnalysisDialogFields] = useState({});
   const setAnalysisDialogField = useCallback(
-    (field) => (event) => {
+    (field, fieldType) => (event) => {
+      if (fieldType === "direct") {
+        setAnalysisDialogFields({
+          ...analysisDialogFields,
+          [field]: event,
+        });
+        return;
+      }
       setAnalysisDialogFields({
         ...analysisDialogFields,
         [field]: event.target.value,
@@ -283,35 +298,58 @@ export const Setup = () => {
     [analysisDialogFields, setAnalysisDialogFields]
   );
 
-  /*
-  const [connectorItems, setConnectorItems] = useState([]);
-  const addConnectorItem = useCallback(() => {
-    setConnectorItems([
-      ...connectorItems,
-      {
-        name: dialogFields.name,
-        type: "CSV Download",
-        config: {
-          downloadUrl: dialogFields.downloadUrl,
-        },
-      },
-    ]);
-    handleOpen();
-    setDialogFields({});
-  }, [
-    connectorItems,
-    setConnectorItems,
-    dialogFields,
-    setDialogFields,
-    handleOpen,
-  ]);
-  */
-  const [connectors, setConnectors] = useState([]);
+  const isConnectorDialogOpen = Boolean(connectorDialogOpen);
+  const handleConnectorDialogOpen = useCallback(
+    (type, id) => {
+      if (isConnectorDialogOpen) {
+        setConnectorDialogOpen(null);
+        return;
+      }
+      if (id || id === 0) {
+        const item = connectors.find((c) => c.id === id);
+        console.log("handleConnectorDialogOpen", { type, id, item });
+        if (!item) {
+          return;
+        }
+        setConnectorDialogFields(item);
+      }
+      setConnectorDialogOpen(type);
+    },
+    [isConnectorDialogOpen, setConnectorDialogOpen, connectors]
+  );
+
+  const isAnalysisDialogOpen = Boolean(analysisDialogOpen);
+  const handleAnalysisDialogOpen = useCallback(
+    (type, id) => {
+      if (isAnalysisDialogOpen) {
+        setAnalysisDialogOpen(null);
+        return;
+      }
+      if (id || id === 0) {
+        const item = analysis.find((c) => c.id === id);
+        console.log("handleAnalysisDialogOpen", { type, id, item, analysis });
+        if (!item) {
+          return;
+        }
+        setAnalysisDialogFields(item);
+      }
+      setAnalysisDialogOpen(type);
+    },
+    [isAnalysisDialogOpen, setAnalysisDialogOpen, analysis]
+  );
+
   const addConnector = useCallback(async () => {
-    const connector = await postConnector({
-      ...connectorDialogFields,
-      type: "csv_download",
-    });
+    if (analysisDialogFields.id || analysisDialogFields.id === 0) {
+      await patchConnector({
+        ...connectorDialogFields,
+        type: connectorDialogOpen,
+      });
+    } else {
+      await postConnector({
+        ...connectorDialogFields,
+        type: connectorDialogOpen,
+      });
+    }
     const connectors = await getConnectors();
     setConnectors(connectors);
     handleConnectorDialogOpen(null);
@@ -322,19 +360,45 @@ export const Setup = () => {
     setConnectorDialogFields,
     handleConnectorDialogOpen,
   ]);
+
   const addAnalysis = useCallback(async () => {
+    if (analysisDialogFields.id || analysisDialogFields.id === 0) {
+      await patchAnalysis({
+        ...analysisDialogFields,
+        type: analysisDialogOpen,
+      });
+    } else {
+      await postAnalysis({
+        ...analysisDialogFields,
+        type: analysisDialogOpen,
+      });
+    }
+    const analysis = await getAnalysis();
+    setAnalysis(analysis);
     handleAnalysisDialogOpen(null);
     setAnalysisDialogFields({});
     triggerIngest();
-  }, [analysisDialogFields, setAnalysisDialogFields, handleAnalysisDialogOpen]);
+  }, [
+    analysisDialogFields,
+    setAnalysisDialogFields,
+    analysisDialogOpen,
+    handleAnalysisDialogOpen,
+  ]);
+
   useEffect(() => {
     const fetchData = async () => {
       const connectors = await getConnectors();
       setConnectors(connectors);
+      const analysis = await getAnalysis();
+      setAnalysis(analysis);
     };
     fetchData();
-  }, [setConnectors]);
+  }, [setConnectors, setAnalysis]);
 
+  console.log({
+    connectors,
+    analysis,
+  });
   return (
     <div>
       <a href="/dashboard">
@@ -356,6 +420,7 @@ export const Setup = () => {
             options={connectorOptions}
             items={connectors}
             className="mt-4"
+            onOpen={handleConnectorDialogOpen}
           />
         </Col>
         <Col numColSpan={1}>
@@ -367,7 +432,12 @@ export const Setup = () => {
             options={analysisOptions}
             onAddClick={handleAnalysisDialogOpen}
           />
-          <ConfigurationList items={analysisItems} className="mt-4" />
+          <ConfigurationList
+            options={analysisOptions}
+            items={analysis}
+            className="mt-4"
+            onOpen={handleAnalysisDialogOpen}
+          />
         </Col>
         <Col numColSpan={1}>
           <Flex alignItems="center" justifyContent="center" className="mb-4">
@@ -383,6 +453,7 @@ export const Setup = () => {
       </Flex>
       <ConnectorDialog
         isDialogOpen={isConnectorDialogOpen}
+        type={connectorDialogOpen}
         handleOpen={handleConnectorDialogOpen}
         add={addConnector}
         dialogFields={connectorDialogFields}
@@ -390,6 +461,7 @@ export const Setup = () => {
       />
       <AnalysisDialog
         isDialogOpen={isAnalysisDialogOpen}
+        type={analysisDialogOpen}
         handleOpen={handleAnalysisDialogOpen}
         add={addAnalysis}
         dialogFields={analysisDialogFields}

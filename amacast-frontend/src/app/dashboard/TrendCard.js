@@ -23,23 +23,7 @@ import {
   Text,
   LineChart,
 } from "@tremor/react";
-import { InformationCircleIcon } from "@heroicons/react/solid";
-import { useState } from "react";
-import { TrendingDownIcon, TrendingUpIcon } from "@heroicons/react/outline";
 import { TrendRow } from "./TrendRow";
-
-const trendTypeMap = {
-  upper_limit: {
-    Icon: TrendingUpIcon,
-    deltaType: "moderateIncrease",
-    label: "Reaching Upper Limit",
-  },
-  lower_limit: {
-    Icon: TrendingDownIcon,
-    deltaType: "moderateDecrease",
-    label: "Reaching Lower Limit",
-  },
-};
 
 export const TrendCard = ({ trends, getConfig }) => {
   return (

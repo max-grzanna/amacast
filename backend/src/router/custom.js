@@ -10,8 +10,8 @@ const getConfigs = async (req, res, next) => {
       "analysis.id as analysis_id",
       "analysis.name as analysis_name",
       "analysis.type as analysis_type",
-      "analysis.min_capacity as analysis_min_capacity",
-      "analysis.max_capacity as analysis_max_capacity",
+      "analysis.lower_limit as analysis_lower_limit",
+      "analysis.upper_limit as analysis_upper_limit",
       "timeseries.id as timeseries_id",
       "timeseries.identifier as timeseries_identifier",
       "connector.id as connector_id",
@@ -22,7 +22,7 @@ const getConfigs = async (req, res, next) => {
     ])
     .from("analysis")
     .joinRaw(
-      "join timeseries on analysis.identifier_matcher is null or analysis.identifier_matcher like timeseries.identifier"
+      "join timeseries on analysis.identifier_matcher is null or  timeseries.identifier like analysis.identifier_matcher"
     )
     .joinRaw("join connector on timeseries.connector_id = connector.id");
   const dataPoints = await db

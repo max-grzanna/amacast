@@ -20,8 +20,8 @@ const fetchCapacity = async (inData, config) => {
       body: JSON.stringify({
         file_name: "api.csv",
         data,
-        max_capacity: config.analysis_max_capacity,
-        min_capacity: config.analysis_min_capacity,
+        max_capacity: config.analysis_upper_limit,
+        min_capacity: config.analysis_lower_limit,
       }),
     },
   ];
@@ -78,15 +78,20 @@ const persistChangePoint = async (config, result) => {
         timestamp_start,
         timestamp_end,
       })
-      .onConflict()
-      .ignore()
+      .onConflict(["timeseries_id", "analysis_id"])
+      .merge()
       .returning("*");
   }
   return Promise.resolve(null);
 };
 
 const persistTrend = async (config, result) => {
-  const { analysis_id, timeseries_id } = config;
+  const {
+    analysis_id,
+    timeseries_id,
+    analysis_upper_limit,
+    analysis_lower_limit,
+  } = config;
   const { type, overrun_date } = result;
   if (overrun_date) {
     return await db("trend")
@@ -96,9 +101,11 @@ const persistTrend = async (config, result) => {
         analysis_id,
         timestamp: overrun_date,
         trend_type: type,
+        upper_limit: analysis_upper_limit,
+        lower_limit: analysis_lower_limit,
       })
-      .onConflict()
-      .ignore()
+      .onConflict(["timeseries_id", "analysis_id", "trend_type"])
+      .merge()
       .returning("*");
   }
   return Promise.resolve(null);
@@ -136,19 +143,22 @@ const runAnalysis = async (config) => {
 };
 
 export const runAllAnalysis = async () => {
-  const configs = await db
+  const query = db
     .select([
       "analysis.id as analysis_id",
       "analysis.name as analysis_name",
       "analysis.type as analysis_type",
-      "analysis.min_capacity as analysis_min_capacity",
-      "analysis.max_capacity as analysis_max_capacity",
+      "analysis.lower_limit as analysis_lower_limit",
+      "analysis.upper_limit as analysis_upper_limit",
       "timeseries.id as timeseries_id",
       "timeseries.identifier as timeseries_identifier",
     ])
     .from("analysis")
     .joinRaw(
-      "join timeseries on analysis.identifier_matcher is null or analysis.identifier_matcher like timeseries.identifier"
+      "join timeseries on analysis.identifier_matcher is null or timeseries.identifier like analysis.identifier_matcher"
     );
+  console.log(query.toString());
+  const configs = await query;
+  console.log("runAllAnalysis", configs);
   return Promise.all(configs.map(runAnalysis));
 };

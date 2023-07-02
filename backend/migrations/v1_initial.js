@@ -30,8 +30,8 @@ export const up = (knex) => {
       table.string("name");
       table.string("identifier_matcher");
       table.string("type"); // trend, change_point
-      table.double("min_capacity");
-      table.double("max_capacity");
+      table.double("upper_limit");
+      table.double("lower_limit");
     });
 };
 
