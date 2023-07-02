@@ -312,6 +312,8 @@ export const Setup = () => {
           return;
         }
         setConnectorDialogFields(item);
+      } else {
+        setConnectorDialogFields({});
       }
       setConnectorDialogOpen(type);
     },
@@ -332,6 +334,8 @@ export const Setup = () => {
           return;
         }
         setAnalysisDialogFields(item);
+      } else {
+        setAnalysisDialogFields({});
       }
       setAnalysisDialogOpen(type);
     },

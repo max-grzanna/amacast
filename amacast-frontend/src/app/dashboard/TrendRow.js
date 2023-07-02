@@ -94,7 +94,7 @@ export const TrendRow = ({ trend, config }) => {
 
   const lineChartData = sampledData.map((item) => {
     return {
-      timestamp: `${moment(item.timestamp).format("  DD.MM.  ")}`,
+      timestamp: `${moment(item.timestamp).format("  DD.MM.YY  ")}`,
       value: item.value,
       upper_limit: trend?.upper_limit || config?.analysis_upper_limit,
       lower_limit: trend?.lower_limit || config?.analysis_lower_limit,
