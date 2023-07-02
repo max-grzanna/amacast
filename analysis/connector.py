@@ -31,6 +31,8 @@ def main():
     parser.add_argument("file", type=str, help="Path to the CSV file")
     parser.add_argument("--endpoint", type=str, help="URL of the API endpoint")
     parser.add_argument("--max-capacity", required=False , type=float, help="Maximum capacity of the system")
+    parser.add_argument("--min-capacity", required=False , type=float, help="Minimum capacity of the system")
+
 
     args = parser.parse_args()
 
@@ -47,6 +49,9 @@ def main():
 
         if args.max_capacity:
             json_data["max_capacity"] = args.max_capacity
+        
+        if args.min_capacity:
+            json_data["min_capacity"] = args.min_capacity
 
         response = send_data_to_api(json_data, endpoint)
         print(response.text)

@@ -26,18 +26,35 @@ def get_forecasted_capacity_overrun():
   content = request.json
   timeseries_name = content["file_name"]
   max_capacity = content["max_capacity"]
+  min_capacity = content["min_capacity"]
   data = pd.json_normalize(content["data"])
   data = helper.prepare_df(data, window=6 * 30)
   data = helper.smooth_time_series(data, window=24,
                                    center=True, 
                                    min_periods=1)
   reg = create_regressor(data)
-  overrun_date = predict_capacity_overrun(reg, max_capacity=max_capacity)
+  upper_overrun_date = predict_capacity_overrun(reg, capacity=max_capacity)
+  lower_overrun_date = predict_capacity_overrun(reg, capacity=min_capacity)
+
+  # get slope and intercept of the sklearn linear regression model req
+  print(reg.intercept_)
+  print(reg.coef_)
+  if hasattr(reg.coef_, "__len__"):
+    slope = reg.coef_[0]
+  else:
+    slope = reg.coef_
+  if hasattr(reg.intercept_, "__len__"):
+    intercept = reg.intercept_[0]
+  else:
+    intercept = reg.intercept_
 
   res= {
     "name": timeseries_name,
     "type": "upper_limit",
-    "overrun_date": overrun_date,
+    "upper_overrun_date": upper_overrun_date,
+    "lower_overrun_date": lower_overrun_date,
+    "slope": slope,
+    "intercept": intercept
   }
   
   return res, 200

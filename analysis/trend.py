@@ -27,6 +27,6 @@ def create_regressor(df):
 def get_coef(reg):
     return reg.coef_[0]
 
-def predict_capacity_overrun(reg, max_capacity):
-    pred = reg.predict(np.array([max_capacity]).reshape(-1, 1))
+def predict_capacity_overrun(reg, capacity):
+    pred = reg.predict(np.array([capacity]).reshape(-1, 1))
     return datetime.date.fromordinal(int(pred[0]))
