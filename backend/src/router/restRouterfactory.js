@@ -7,7 +7,10 @@ export const createRestRouter = (tableName) => {
   const get = async (req, res, next) => {
     let data = [];
     if (tableName === "warning") {
-      data = await db(tableName).select("*").orderBy("timestamp_start", "asc");
+      data = await db(tableName)
+        .select("*")
+        .where("reaction_at", "is", null)
+        .orderBy("timestamp_start", "asc");
     } else if (tableName === "trend") {
       data = await db(tableName).select("*").orderBy("timestamp", "asc");
     } else {

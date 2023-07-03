@@ -70,6 +70,17 @@ export const getWarnings = async () => {
   return await response.json();
 };
 
+export const patchWarning = async (data) => {
+  const response = await fetch(BACKEND_URL + `/warning/${data.id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return await response.json();
+};
+
 export const getTrends = async () => {
   const response = await fetch(BACKEND_URL + "/trend");
   return await response.json();

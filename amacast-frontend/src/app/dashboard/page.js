@@ -25,6 +25,7 @@ import {
   getConfigs,
   getTrends,
   triggerAnalysis,
+  patchWarning,
 } from "@/requests";
 import ConfigsTable from "../setup/ConfigsTable";
 import { WarningCard } from "./WarningCard";
@@ -46,11 +47,15 @@ export const Dashboard = () => {
     const fetchData = async () => {
       const configs = await getConfigs();
       setConfigs(configs);
-      await triggerAnalysis();
       const warnings = await getWarnings();
       setWarnings(warnings);
       const trends = await getTrends();
       setTrends(trends);
+      await triggerAnalysis();
+      const warnings2 = await getWarnings();
+      setWarnings(warnings2);
+      const trends2 = await getTrends();
+      setTrends(trends2);
     };
     fetchData();
   }, [setConfigs]);
@@ -86,6 +91,14 @@ export const Dashboard = () => {
     }, 10000);
     return () => clearInterval(interval);
   }, [setTrends]);
+  const onReactWarning = useCallback((warningId) => async () => {
+    await patchWarning({
+      id: warningId,
+      reaction_at: new Date(),
+    });
+    const warnings = await getWarnings();
+    setWarnings(warnings);
+  });
 
   return (
     <div>
@@ -96,7 +109,11 @@ export const Dashboard = () => {
       </a>
 
       <Flex className="mt-10">
-        <WarningCard warnings={warnings} getConfig={getConfig} />
+        <WarningCard
+          warnings={warnings}
+          getConfig={getConfig}
+          onReactWarning={onReactWarning}
+        />
       </Flex>
       <Flex className="mt-10">
         <TrendCard trends={trends} getConfig={getConfig} />

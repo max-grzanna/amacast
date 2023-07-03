@@ -26,9 +26,9 @@ import {
   getTrends,
   triggerAnalysis,
 } from "@/requests";
-import ConfigsTable from "../setup/ConfigsTable";
+import { CheckIcon, SearchIcon, VolumeOffIcon } from "@heroicons/react/solid";
 
-export const WarningCard = ({ warnings, getConfig }) => {
+export const WarningCard = ({ warnings, getConfig, onReactWarning }) => {
   return (
     <Card decoration="top">
       <Title>Warnings</Title>
@@ -56,6 +56,35 @@ export const WarningCard = ({ warnings, getConfig }) => {
                   </Text>
                 </Flex>
                 <ProgressBar value={0} className="mt-2" />
+                <Flex justifyContent="between" className="gap-2 mt-5">
+                  <Select>
+                    <SelectItem value={"ignore"} icon={VolumeOffIcon}>
+                      Ignore
+                    </SelectItem>
+                    <SelectItem value={"resolve"} icon={CheckIcon}>
+                      Resolve
+                    </SelectItem>
+                  </Select>
+                  {warning.id || warning.id === 0 ? (
+                    <Button
+                      variant="secondary"
+                      onClick={onReactWarning(warning.id)}
+                    >
+                      Save
+                    </Button>
+                  ) : null}
+                  <a
+                    target="_blank"
+                    href={
+                      config?.ref_url ||
+                      "https://monit-grafana-open.cern.ch/d/TUKgUEcnz/ru-rrc-ki-t1?orgId=16"
+                    }
+                  >
+                    <Button variant="secondary" icon={SearchIcon}>
+                      Explore
+                    </Button>
+                  </a>
+                </Flex>
               </Card>
             </Col>
           );

@@ -23,8 +23,8 @@ services:
       - POSTGRES_PASSWORD=pass
       - POSTGRES_DB=amacast
       - TZ=Europe/Berlin
-#    volumes:
-#      - ./dumps/amacast_dump1.sql:/docker-entrypoint-initdb.d/amacast_dump1.sql:ro
+    volumes:
+      - ./dumps/amacast_dump.sql:/docker-entrypoint-initdb.d/amacast_dump1.sql:ro
 
   backend:
     build:
