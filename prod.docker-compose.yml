@@ -90,6 +90,9 @@ services:
       - backend
       - proxy-tier
 
+volumes:
+  postgres_data:
+
 networks:
   backend:
   proxy-tier:
