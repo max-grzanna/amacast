@@ -11,6 +11,8 @@ services:
       - 5001
     ports:
       - 7001:5000
+    networks:
+      - backend
 
   db:
     image: timescale/timescaledb:2.11.0-pg15
@@ -26,6 +28,8 @@ services:
       - TZ=Europe/Berlin
     volumes:
       - ./dumps/amacast_dump.sql:/docker-entrypoint-initdb.d/amacast_dump1.sql:ro
+    networks:
+      - backend
 
   backend:
     build:
@@ -49,6 +53,9 @@ services:
       - VIRTUAL_PORT=8080
       - LETSENCRYPT_HOST=api.amacast.leoek.tech
       - LETSENCRYPT_EMAIL=webmaster@leoek.tech
+    networks:
+      - backend
+      - proxy-tier
   
   frontend:
     build:
@@ -65,6 +72,9 @@ services:
       - VIRTUAL_PORT=3000
       - LETSENCRYPT_HOST=amacast.leoek.tech
       - LETSENCRYPT_EMAIL=webmaster@leoek.tech
+    networks:
+      - backend
+      - proxy-tier
 
   data:
     build:
@@ -75,3 +85,12 @@ services:
       - 8080
     ports:
       - 7004:8080
+    networks:
+      - backend
+      - proxy-tier
+
+networks:
+  backend:
+  proxy-tier:
+    external:
+      name: nginx-proxy
