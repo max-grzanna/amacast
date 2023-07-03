@@ -25,16 +25,26 @@ def get_trend():
 def get_forecasted_capacity_overrun():
   content = request.json
   timeseries_name = content["file_name"]
-  max_capacity = content["max_capacity"]
-  min_capacity = content["min_capacity"]
+  if "max_capacity" in content:
+    max_capacity = content["max_capacity"]
+  if "min_capacity" in content:
+    min_capacity = content["min_capacity"]
   data = pd.json_normalize(content["data"])
   data = helper.prepare_df(data, window=6 * 30)
   data = helper.smooth_time_series(data, window=24,
                                    center=True, 
                                    min_periods=1)
   reg = create_regressor(data)
-  upper_overrun_date = predict_capacity_overrun(reg, capacity=max_capacity)
-  lower_overrun_date = predict_capacity_overrun(reg, capacity=min_capacity)
+  print(reg)
+  if "max_capacity" in content:
+    upper_overrun_date = predict_capacity_overrun(reg, capacity=max_capacity)
+  else:
+    upper_overrun_date = None
+  if "min_capacity" in content:
+    print(min_capacity)
+    lower_overrun_date = predict_capacity_overrun(reg, capacity=min_capacity)
+  else:
+    lower_overrun_date = None
 
   # get slope and intercept of the sklearn linear regression model req
   print(reg.intercept_)
@@ -80,4 +90,4 @@ def get_changepoints():
   return res, 200
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

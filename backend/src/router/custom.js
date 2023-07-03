@@ -48,7 +48,7 @@ const getConfigs = async (req, res, next) => {
 };
 
 const getTimeseriesData = async (req, res, next) => {
-  const from = moment().subtract(6, "months").toDate();
+  const from = moment().subtract(36, "months").toDate();
   const timeseries_id = req.params.timeseries_id;
   if (!timeseries_id) {
     return [];

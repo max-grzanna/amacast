@@ -9,6 +9,10 @@ export const up = (knex) => {
       table.double("lower_limit");
       table.datetime("created_at");
       table.datetime("timestamp");
+      table.datetime("timestamp_upper_limit");
+      table.datetime("timestamp_lower_limit");
+      table.double("slope");
+      table.double("intercept");
       table.string("trend_type"); // upper_limit, lower_limit
       table.string("reaction_type"); // resolve, ignore
       table.datetime("reaction_at");

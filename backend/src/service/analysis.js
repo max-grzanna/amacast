@@ -20,8 +20,12 @@ const fetchCapacity = async (inData, config) => {
       body: JSON.stringify({
         file_name: "api.csv",
         data,
-        max_capacity: config.analysis_upper_limit,
-        min_capacity: config.analysis_lower_limit,
+        ...(config.analysis_upper_limit
+          ? { max_capacity: config.analysis_upper_limit }
+          : {}),
+        ...(config.analysis_lower_limit
+          ? { min_capacity: config.analysis_lower_limit }
+          : {}),
       }),
     },
   ];
@@ -92,22 +96,45 @@ const persistTrend = async (config, result) => {
     analysis_upper_limit,
     analysis_lower_limit,
   } = config;
-  const { type, overrun_date } = result;
-  if (overrun_date) {
-    return await db("trend")
-      .insert({
-        created_at: new Date(),
-        timeseries_id,
-        analysis_id,
-        timestamp: overrun_date,
-        trend_type: type,
-        upper_limit: analysis_upper_limit,
-        lower_limit: analysis_lower_limit,
-      })
-      .onConflict(["timeseries_id", "analysis_id", "trend_type"])
-      .merge()
-      .returning("*");
+  const { type, upper_overrun_date, lower_overrun_date, slope, intercept } =
+    result;
+  const moment_upper_limit = moment(upper_overrun_date);
+  const moment_lower_limit = moment(lower_overrun_date);
+  let timestamp;
+  let trend_type = type;
+  if (upper_overrun_date && moment_upper_limit.isAfter(moment(new Date()))) {
+    timestamp = moment_upper_limit.toDate();
+    trend_type = "upper_limit";
+  } else if (
+    lower_overrun_date &&
+    moment_lower_limit.isAfter(moment(new Date()))
+  ) {
+    timestamp = moment_lower_limit.toDate();
+    trend_type = "lower_limit";
   }
+  console.log("persistTrend", {
+    timestamp,
+    moment_upper_limit,
+    moment_lower_limit,
+  });
+  return await db("trend")
+    .insert({
+      created_at: new Date(),
+      timeseries_id,
+      analysis_id,
+      timestamp,
+      timestamp_upper_limit: upper_overrun_date,
+      timestamp_lower_limit: lower_overrun_date,
+      trend_type,
+      upper_limit: analysis_upper_limit,
+      lower_limit: analysis_lower_limit,
+      slope,
+      intercept,
+    })
+    .onConflict(["timeseries_id", "analysis_id", "trend_type"])
+    .merge()
+    .returning("*");
+
   return Promise.resolve(null);
 };
 

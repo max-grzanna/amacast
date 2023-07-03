@@ -47,6 +47,10 @@ export const Dashboard = () => {
       const configs = await getConfigs();
       setConfigs(configs);
       await triggerAnalysis();
+      const warnings = await getWarnings();
+      setWarnings(warnings);
+      const trends = await getTrends();
+      setTrends(trends);
     };
     fetchData();
   }, [setConfigs]);

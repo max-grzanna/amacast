@@ -48,12 +48,12 @@ const trendTypeMap = {
 
 const getProgress = (item) => {
   const { timestamp, created_at = moment().subtract(1, "month") } = item;
-  const start = moment(created_at).subtract(3, "month").toDate().getTime();
+  const start = moment(created_at).subtract(6, "month").toDate().getTime();
   const now = new Date().getTime();
   const end = new Date(timestamp).getTime();
   const progress = Math.round(((now - start) / (end - start)) * 100);
   return {
-    formattedStart: moment(new Date(created_at)).format("DD.MM.YYYY"),
+    formattedStart: moment(start).format("DD.MM.YYYY"),
     formattedEnd: moment(new Date(timestamp)).format("DD.MM.YYYY"),
     value: progress,
   };
