@@ -3,7 +3,8 @@ import { camelCase } from "lodash";
 const BACKEND_URL =
   process.env.BACKEND_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:7002";
+  //"http://localhost:7002";
+  "https://api.amacast.leoek.tech";
 
 export const postConnector = async (data) => {
   const response = await fetch(BACKEND_URL + "/connector", {
