@@ -28,6 +28,7 @@ services:
       - TZ=Europe/Berlin
     volumes:
       - ./dumps/amacast_dump.sql:/docker-entrypoint-initdb.d/amacast_dump1.sql:ro
+      - postgres_data:/var/lib/postgresql
     networks:
       - backend
 
