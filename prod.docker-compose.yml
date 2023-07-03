@@ -25,7 +25,7 @@ services:
       - POSTGRES_DB=amacast
       - TZ=Europe/Berlin
     volumes:
-      - ./dumps/amacast_dump1.sql:/docker-entrypoint-initdb.d/amacast_dump1.sql:ro
+      - ./dumps/amacast_dump.sql:/docker-entrypoint-initdb.d/amacast_dump1.sql:ro
 
   backend:
     build:
