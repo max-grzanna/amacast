@@ -11,8 +11,8 @@ RUN  npm install --production
 COPY .env.docker .local.env
 COPY public ./public
 COPY src ./src
-COPY *.json .
-COPY *.js .
+COPY *.json ./
+COPY *.js ./
 
 RUN npm run build
 
